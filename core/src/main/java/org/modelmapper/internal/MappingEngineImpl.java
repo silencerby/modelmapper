@@ -138,8 +138,15 @@ public class MappingEngineImpl implements MappingEngine {
 
     if (context.getDestination() == null && Types.isInstantiable(context.getDestinationType())) {
       D destination = createDestination(context);
-      if (destination == null)
+      if (destination == null) {
         return null;
+      }
+      Class<D> destinationClass = Types.<D>deProxy(destination.getClass());
+      TypeMap<S, D> moreSpecificTypeMap = typeMapStore.get(context.getSourceType(), destinationClass,
+          context.getTypeMapName());
+      if (moreSpecificTypeMap != null && !moreSpecificTypeMap.equals(typeMap)) {
+        return map(context.getSource(), context.getSourceType(), destination, TypeToken.<D>of(destinationClass), null);
+      }
     }
 
     if (noSkip) {
